@@ -64,6 +64,34 @@ stations_metadata_df %>%
   geom_line() + 
   theme_classic()
 
+### 6: Query above with station name
+
+# Select station
+selected_station <- stations_metadata_df %>%
+  filter(latestData > Sys.Date()- days(x = 7)) %>% 
+  sample_n(1)
+
+# Extract name of station
+station_name <- selected_station$name
+
+# Extract Volume Data
+volume_data <- vol_qry(id = selected_station$id,
+                       from = to_iso8601(selected_station$latestData, -4),
+                       to = to_iso8601(selected_station$latestData, 0)
+                       )
+
+# Final Plot
+volume_data %>% 
+  GQL(., .url = configs$vegvesen_url) %>%
+  transform_volumes() %>% 
+  ggplot(aes(x=from, y=volume)) + 
+  geom_line() + 
+  xlab("Date") +
+  ylab("Volume") +
+  ggtitle("Traffic Volume Over Time",
+          subtitle = paste("Traffic Station:", station_name)) +
+  theme_bw()
+  
 
 
 
